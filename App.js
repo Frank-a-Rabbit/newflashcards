@@ -16,31 +16,6 @@ const App = () => {
       DoHyeon_400Regular,
     });
     
-    // const [state, setState] = useState({});
-    // console.log(state)
-    // useEffect(() => {
-    //   let decks;
-    //   AsyncStorage.getItem("DECKS", (err, result) => {
-    //       if(err){
-    //           console.log(err);
-    //       }else{
-    //           decks = JSON.parse(result);
-    //           setState(decks);
-    //       }
-    //   })
-    //   AsyncStorage.getItem("DECKS", (err, result) => {
-    //       if(err){
-    //           console.log(err);
-    //       }else{
-    //           decks = JSON.parse(result);
-    //       }
-    //   }).then(() => {
-    //       setState({
-    //           decks: decks,
-    //           hasDecks: true
-    //       });
-    //   })
-    // }, [])
     return(
       <View style={styles.parent}>
         <NavigationContainer>

@@ -4,6 +4,7 @@ import AsyncStorage from "@react-native-community/async-storage"
 import {PrimaryNavOpen} from "../App"
 import {createStackNavigator} from "@react-navigation/stack"
 // import Deck from "./Deck"
+import DATA from "../utils/data"
 
 const Stack = createStackNavigator();
 
@@ -22,7 +23,7 @@ export default class Decks extends Component{
     }
 
     state = {
-        decks: false,
+        decks: {},
         hasDecks: false
     }
 
@@ -32,6 +33,14 @@ export default class Decks extends Component{
             if(err){
                 console.log(err);
             }else{
+                if(result === null){
+                    DATA._seed().then(() => {
+                        this.setState({
+                            decks: decks,
+                            hasDecks: true
+                        });
+                    });
+                }
                 decks = JSON.parse(result);
             }
         }).then(() => {
@@ -39,7 +48,7 @@ export default class Decks extends Component{
                 decks: decks,
                 hasDecks: true
             });
-            console.log("Done")
+            console.log(this.state.decks)
         })
     }
 

@@ -40,7 +40,7 @@ class DeckItem extends Component{
         }
 
         const _keyboardDidShow = () => {
-            console.log("Keyboard Shoown");
+            console.log("Keyboard Shown");
           };
         
           const _keyboardDidHide = () => {
