@@ -1,13 +1,16 @@
 import React, {Component, useEffect} from "react"
 import {Text, Button, StyleSheet, Animated, View, TextInput, Keyboard} from "react-native"
 import { Dimensions } from "react-native"
+import DATA from "../utils/data"
 
 class DeckItem extends Component{
     constructor(props){
+        console.log(props)
         super(props);
         this.state = {
             opacity: new Animated.Value(0),
-            addCard: false
+            addCard: false,
+            deckItems: props.props.route.params.questions.length
         }
     }
 
@@ -17,41 +20,37 @@ class DeckItem extends Component{
     }
 
     render(){
-        const width = Dimensions.get("window").width;
-        const height = Dimensions.get("window").height;
         const props = this.props.props;
         const {opacity} = this.state;
+        let question, answer;
 
         const addCard = () => {
             this.setState({addCard: true});
         }
 
-        const board = () => {
-
-                Keyboard.addListener("keyboardDidShow", _keyboardDidShow);
-                Keyboard.addListener("keyboardDidHide", _keyboardDidHide);
-            
-                // cleanup function
-                return () => {
-                  Keyboard.removeListener("keyboardDidShow", _keyboardDidShow);
-                  Keyboard.removeListener("keyboardDidHide", _keyboardDidHide);
-                };
-              
+        const addToDeck = () => {
+            if(question === undefined || answer === undefined){
+                return;
+            }
+            DATA._addCard(props.route.params.deckName, question, answer).then( _ => {
+                DATA._getDecks("DECKS").then(response => {
+                    this.setState({
+                        addCard: false,
+                        deckItems: response[props.route.params.deckName].questions.length
+                    });
+                });
+                // this.setState({
+                //     addCard: false,
+                //     deckItems: deckLength
+                // });
+            });
         }
-
-        const _keyboardDidShow = () => {
-            console.log("Keyboard Shown");
-          };
-        
-          const _keyboardDidHide = () => {
-            console.log("Keyboard Hidden");
-          };
 
         return(
             <View style={styles.container}>
                 <Animated.View style={[styles.innerCont, {opacity}]}>
                     <Text style={styles.title}>{props.route.params.deckName}</Text>
-                    <Text style={styles.subtitle}>Number of cards: {props.route.params.questions.length}</Text>
+                    <Text style={styles.subtitle}>Number of cards: {this.state.deckItems}</Text>
                     <View style={styles.btnCont}>
                         <View style={styles.btnTop}>
                             <Button
@@ -70,12 +69,17 @@ class DeckItem extends Component{
                         <TextInput
                         style={styles.input}
                         placeholder="Question:"
-                        onFocus={board()}
+                        onChangeText={value => question = value}
                         onBlur={Keyboard.dismiss}></TextInput>
                         <TextInput
                         style={styles.input}
                         placeholder="Answer:"
+                        onChangeText={value => answer = value}
                         onBlur={Keyboard.dismiss}></TextInput>
+                        
+                        <Button
+                        title="Add to Deck"
+                        onPress={() => addToDeck(question, answer)}></Button>
                     </View>
                 )}
             </View>
