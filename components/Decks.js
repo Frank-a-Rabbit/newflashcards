@@ -1,5 +1,5 @@
-import React, {Component, useState} from "react"
-import {Platform, StyleSheet, Text, View, SafeAreaView, FlatList, TouchableOpacity} from "react-native"
+import React, {Component} from "react"
+import {TextInput, StyleSheet, Text, View, SafeAreaView, FlatList, TouchableOpacity, Button} from "react-native"
 import AsyncStorage from "@react-native-community/async-storage"
 import {PrimaryNavOpen} from "../App"
 import {createStackNavigator} from "@react-navigation/stack"
@@ -24,7 +24,8 @@ export default class Decks extends Component{
 
     state = {
         decks: {},
-        hasDecks: false
+        hasDecks: false,
+        addNewDeck: false
     }
 
     componentDidMount(){
@@ -48,13 +49,19 @@ export default class Decks extends Component{
                 decks: decks,
                 hasDecks: true
             });
-            console.log(this.state.decks)
-        })
+        });
     }
 
     render(){
         const navigation = this.props.navigation;
         let allItems = [];
+        let title;
+        const addNewDeckItem = () => this.setState({addNewDeck: true});
+        const setDecks = async () => await AsyncStorage.getItem("DECKS").then((data) => {
+            console.log(JSON.parse(data))
+            return JSON.parse(data);
+        });
+
         const renderItem = ({item}) => {
             return(
                 <Deck
@@ -73,9 +80,8 @@ export default class Decks extends Component{
                         currentItem["count"] = item.length
                         currentItem["questions"] = item
                     }
-                })
-                allItems.push(currentItem)
-                console.log(allItems)
+                });
+                allItems.push(currentItem);
             })
         )}
 
@@ -88,7 +94,45 @@ export default class Decks extends Component{
                         renderItem={renderItem}>
                     </FlatList>
                 </SafeAreaView>
+                <Button
+                    title="Add New Deck"
+                    style={styles.newDeckBtn}
+                    onPress={() => addNewDeckItem()}
+                ></Button>
                 <Text style={styles.title}>All Decks</Text>
+                {this.state.addNewDeck && (
+                    <View style={styles.addDeck}>
+                        <TextInput
+                        style={styles.input}
+                        placeholder="Deck Title:"
+                        onChangeText={value => title = value}
+                        onBlur={Keyboard.dismiss}></TextInput>
+                        <Button
+                            title="Add New Deck"
+                            onPress={async () => {
+                                await DATA._addDeck(title).then(() => {
+                                    let decks = async () => {
+                                        await DATA._getDecks().then((data) => {
+                                            JSON.stringify(data);
+                                            this.setState({
+                                                decks: data,
+                                                addNewDeck: false
+                                            });
+                                        });
+                                    }
+                                    decks();
+                                })
+                                // let decks = await DATA._getDecks().then(() => {
+                                //     this.setState({
+                                //         addNewDeck: false,
+                                //         decks: decks
+                                //     });
+                                //     console.log(this.state)
+                                // })
+                            }}
+                        ></Button>
+                    </View>
+                )}
             </View>
         )
     }
@@ -145,6 +189,25 @@ const styles = StyleSheet.create({
     deckTitle: {
         fontSize: 22,
         fontWeight: "600"
+    },
+    addDeck: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        position: "absolute",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        zIndex: 2,
+        backgroundColor: "white"
+    },
+    input: {
+        marginTop: 15,
+        marginBottom: 15,
+        padding: 10,
+        borderWidth: 1,
+        borderColor: "black"
     }
   });
 
