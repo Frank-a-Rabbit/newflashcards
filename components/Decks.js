@@ -1,31 +1,22 @@
-import React, {Component} from "react"
+import React, {Component, useState, useEffect} from "react"
 import {TextInput, StyleSheet, Text, View, SafeAreaView, FlatList, TouchableOpacity, Button} from "react-native"
 import AsyncStorage from "@react-native-community/async-storage"
 import {PrimaryNavOpen} from "../App"
 import {createStackNavigator} from "@react-navigation/stack"
-// import Deck from "./Deck"
 import DATA from "../utils/data"
 
 const Stack = createStackNavigator();
 
-const Deck = ({deck}) => {
-    return(
-        <TouchableOpacity style={styles.deckCont} onPress={() => deck.nav.navigate("ViewDeck", {deckName: deck.title, questions: deck.questions})}>
-            <Text style={[styles.deck, styles.deckTitle]}>{deck.title}</Text>
-            <Text style={styles.deck}>Number of Cards: {deck.count}</Text>
-        </TouchableOpacity>
-    )
-}
-
-export default class Decks extends Component{
+class Decks extends Component{
     constructor(props){
         super(props);
-    }
-
-    state = {
-        decks: {},
-        hasDecks: false,
-        addNewDeck: false
+        // this.updateState = this.updateState.bind(this);
+        this.state = {
+            decks: {},
+            hasDecks: false,
+            addNewDeck: false,
+            deckItems: []
+        }
     }
 
     componentDidMount(){
@@ -52,17 +43,37 @@ export default class Decks extends Component{
         });
     }
 
+    updateState = (resp) => {
+        let currentDecks = this.state.decks;
+        currentDecks[resp.title].questions = resp.questions;
+        this.setState({decks : currentDecks});
+    }
+
     render(){
         const navigation = this.props.navigation;
         let allItems = [];
         let title;
         const addNewDeckItem = () => this.setState({addNewDeck: true});
-        const setDecks = async () => await AsyncStorage.getItem("DECKS").then((data) => {
-            console.log(JSON.parse(data))
-            return JSON.parse(data);
-        });
+
+        const Deck = ({deck}) => {
+            // console.log(deck)
+            // let [currentItems, updateState] = useState(deck.count);
+            // console.log("Items ",currentItems)
+            return(
+                <TouchableOpacity style={styles.deckCont} onPress={() => deck.nav.navigate("ViewDeck", {deckName: deck.title, questions: deck.questions, updater: deck.updateFunction})}>
+                    <Text style={[styles.deck, styles.deckTitle]}>{deck.title}</Text>
+                    <Text style={styles.deck}>Number of Cardsss: {this.state.decks[deck.title].questions.length}</Text>
+                </TouchableOpacity>
+            )
+        }
+
+        // const updateState = value => {
+        //     console.log(value)
+        //     count + 1;
+        // }
 
         const renderItem = ({item}) => {
+            console.log("I am the item in dkecs: ", item.count);
             return(
                 <Deck
                     deck={item}
@@ -79,9 +90,15 @@ export default class Decks extends Component{
                     }else if(typeof item === "object"){
                         currentItem["count"] = item.length
                         currentItem["questions"] = item
+                        currentItem["updateFunction"] = this.updateState
                     }
                 });
                 allItems.push(currentItem);
+
+                if(idx == Object.keys(this.state.decks).length - 1){
+                    console.log("the end")
+                    this.state.deckItems = allItems;
+                }
             })
         )}
 
@@ -90,7 +107,7 @@ export default class Decks extends Component{
                 <PrimaryNavOpen navigation={navigation}></PrimaryNavOpen>
                 <SafeAreaView>
                     <FlatList
-                        data={allItems}
+                        data={this.state.deckItems}
                         renderItem={renderItem}>
                     </FlatList>
                 </SafeAreaView>
@@ -122,13 +139,6 @@ export default class Decks extends Component{
                                     }
                                     decks();
                                 })
-                                // let decks = await DATA._getDecks().then(() => {
-                                //     this.setState({
-                                //         addNewDeck: false,
-                                //         decks: decks
-                                //     });
-                                //     console.log(this.state)
-                                // })
                             }}
                         ></Button>
                     </View>
@@ -211,7 +221,4 @@ const styles = StyleSheet.create({
     }
   });
 
-//   export default function(props){
-//       const navigation = useNavigation();
-//       return <Decks {...props} navigation={navigation}></Decks>
-//   }
+  export default Decks;

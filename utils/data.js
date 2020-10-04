@@ -13,10 +13,11 @@ const DATA = {
             console.log(error);
         }
     },
-    _getDeck: async() => {
+    _getDeck: async(deck) => {
         try{
-            const data = await AsyncStorage.getItem("DECKS");
-            return data;
+            let data = await AsyncStorage.getItem("DECKS");
+            data = JSON.parse(data);
+            return data[deck];
         }catch(error){
             console.log(error);
         }
@@ -72,6 +73,17 @@ const DATA = {
         } catch (error) {
             console.log(error);
         }
+    },
+    _updateDeck: async (value) => {
+        value = JSON.stringify(value);
+        console.log(value);
+        try {
+            await AsyncStorage.setItem("DECKS", value).then(() => {
+                console.log(AsyncStorage.getItem("DECKS"))
+            })
+          } catch (error) {
+              console.log(error);
+          }
     },
     _seed: async () => {
         try {

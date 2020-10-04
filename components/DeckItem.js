@@ -1,16 +1,19 @@
-import React, {Component, useEffect} from "react"
-import {Text, Button, StyleSheet, Animated, View, TextInput, Keyboard} from "react-native"
-import { Dimensions } from "react-native"
-import DATA from "../utils/data"
+import React, {Component, useState, useEffect} from "react";
+import {Text, Button, StyleSheet, Animated, View, TextInput, Keyboard} from "react-native";
+import CardFlip from "react-native-card-flip";
+import DATA from "../utils/data"; 
 
 class DeckItem extends Component{
     constructor(props){
-        console.log(props)
         super(props);
+
         this.state = {
             opacity: new Animated.Value(0),
             addCard: false,
-            deckItems: props.props.route.params.questions.length
+            takeQuiz: false,
+            deckItems: this.props.props.route.params.questions.length,
+            quizItems: props.props.route.params,
+            deckTitle: props.props.route.params.deckName
         }
     }
 
@@ -19,13 +22,37 @@ class DeckItem extends Component{
         Animated.timing(opacity, {toValue: 1, duration: 2500}).start();
     }
 
+    componentDidUpdate(){
+        if(this.props.props.navigation.isFocused()){
+            this.state.addCard = false,
+            this.state.takeQuiz = false
+        }
+    }
+
     render(){
         const props = this.props.props;
+        console.log(this.props.props.route.params.questions.length)
+        const updateFunc = this.props.props.route.params.updater;
         const {opacity} = this.state;
         let question, answer;
 
         const addCard = () => {
             this.setState({addCard: true});
+        }
+
+        const TakeQuiz = ({deck}) => {
+            const questions = deck;
+            let [correctAnswer, tallySelection] = useState(false);
+            let [currentQuestion, processScore] = useState(questions[0]);
+            console.log(questions)
+            return(
+                <View>
+                    <Text>{this.state.deckTitle}</Text>
+                    <Button 
+                    title="Press"
+                    onPress={() => tallySelection(correctAnswer = true)}></Button>
+                </View>
+            )
         }
 
         const addToDeck = () => {
@@ -34,23 +61,22 @@ class DeckItem extends Component{
             }
             DATA._addCard(props.route.params.deckName, question, answer).then( _ => {
                 DATA._getDecks("DECKS").then(response => {
+                    this.props.props.route.params.questions.length += 1;
                     this.setState({
                         addCard: false,
-                        deckItems: response[props.route.params.deckName].questions.length
+                        deckItems: response[props.route.params.deckName].questions.length,
+                        quizItems: response[props.route.params.deckName].questions
                     });
+                    updateFunc(response[props.route.params.deckName]);
                 });
-                // this.setState({
-                //     addCard: false,
-                //     deckItems: deckLength
-                // });
             });
-        }
+        }  
 
         return(
             <View style={styles.container}>
                 <Animated.View style={[styles.innerCont, {opacity}]}>
                     <Text style={styles.title}>{props.route.params.deckName}</Text>
-                    <Text style={styles.subtitle}>Number of cards: {this.state.deckItems}</Text>
+                    <Text style={styles.subtitle}>Number of cardse: {this.props.props.route.params.questions.length}</Text>
                     <View style={styles.btnCont}>
                         <View style={styles.btnTop}>
                             <Button
@@ -60,7 +86,10 @@ class DeckItem extends Component{
                         <View style={styles.btn}>
                             <Button
                             title="Take Quiz"
-                            onPress={() => console.log("New Card")}></Button>
+                            onPress={() => {
+                                this.setState({takeQuiz: true});
+                                // takeQuiz.init(props.route.params.deckName);
+                            }}></Button>
                         </View>
                     </View>
                 </Animated.View>
@@ -80,6 +109,11 @@ class DeckItem extends Component{
                         <Button
                         title="Add to Deck"
                         onPress={() => addToDeck(question, answer)}></Button>
+                    </View>
+                )}
+                {this.state.takeQuiz && (
+                    <View style={styles.quizCont}>
+                        <TakeQuiz deck={this.state.quizItems}></TakeQuiz>
                     </View>
                 )}
             </View>
@@ -141,6 +175,18 @@ const styles = StyleSheet.create({
         padding: 10,
         borderWidth: 1,
         borderColor: "black"
+    },
+    quizCont: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        position: "absolute",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        zIndex: 20,
+        backgroundColor: "red"
     }
 })
 
