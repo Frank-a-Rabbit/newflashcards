@@ -8,9 +8,9 @@ class ViewDeck extends Component{
         super(props);
     }
 
-    static navigationOptions = {
-        drawerLabel: () => null
-    }
+    // static navigationOptions = {
+    //     drawerLabel: () => null
+    // }
     
     render(){
         const props = this.props;
