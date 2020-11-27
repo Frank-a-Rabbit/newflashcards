@@ -1,25 +1,30 @@
-import React, {Component, useState, useEffect} from "react"
+import React, {Component} from "react"
 import {TextInput, StyleSheet, Text, View, SafeAreaView, FlatList, TouchableOpacity, Button} from "react-native"
 import AsyncStorage from "@react-native-community/async-storage"
 import {PrimaryNavOpen} from "../App"
-import {createStackNavigator} from "@react-navigation/stack"
 import DATA from "../utils/data"
-
-const Stack = createStackNavigator();
 
 class Decks extends Component{
     constructor(props){
         super(props);
-        // this.updateState = this.updateState.bind(this);
+        this.updateState = this.updateState.bind(this);
         this.state = {
             decks: {},
             hasDecks: false,
             addNewDeck: false,
-            deckItems: []
+            deckItems: [],
+            notify: false,
+            navToDeck: null
         }
     }
 
     componentDidMount(){
+        (async() => {
+            let resp = await DATA._getNotification();
+            if(resp === false){
+                this.setState({notify: true});
+            }
+        })();
         let decks;
         AsyncStorage.getItem("DECKS", (err, result) => {
             if(err){
@@ -53,27 +58,25 @@ class Decks extends Component{
         const navigation = this.props.navigation;
         let allItems = [];
         let title;
-        const addNewDeckItem = () => this.setState({addNewDeck: true});
+        const addNewDeckItem = () => {
+            this.setState({addNewDeck: true});
+        }
 
         const Deck = ({deck}) => {
-            // console.log(deck)
-            // let [currentItems, updateState] = useState(deck.count);
-            // console.log("Items ",currentItems)
+            if(this.state.navToDeck){
+                if(deck.title === this.state.navToDeck){
+                    deck.nav.navigate("ViewDeck", {deckName: deck.title, questions: deck.questions, updater: deck.updateFunction})
+                }
+            }
             return(
                 <TouchableOpacity style={styles.deckCont} onPress={() => deck.nav.navigate("ViewDeck", {deckName: deck.title, questions: deck.questions, updater: deck.updateFunction})}>
                     <Text style={[styles.deck, styles.deckTitle]}>{deck.title}</Text>
-                    <Text style={styles.deck}>Number of Cardsss: {this.state.decks[deck.title].questions.length}</Text>
+                    <Text style={styles.deck}>Number of Cards: {this.state.decks[deck.title].questions.length}</Text>
                 </TouchableOpacity>
             )
         }
 
-        // const updateState = value => {
-        //     console.log(value)
-        //     count + 1;
-        // }
-
         const renderItem = ({item}) => {
-            console.log("I am the item in dkecs: ", item.count);
             return(
                 <Deck
                     deck={item}
@@ -96,7 +99,6 @@ class Decks extends Component{
                 allItems.push(currentItem);
 
                 if(idx == Object.keys(this.state.decks).length - 1){
-                    console.log("the end")
                     this.state.deckItems = allItems;
                 }
             })
@@ -104,6 +106,17 @@ class Decks extends Component{
 
         return(
             <View style={styles.container}>
+                {this.state.notify && (
+                    <View
+                    style={styles.notification}>
+                        <Button
+                        style={styles.takeQuizBtn}
+                        title="Close"
+                        onPress={() => this.setState({notify: false})}>
+                        </Button>
+                        <Text style={styles.takeQuizTitle}>You Need to Take a Quiz Today</Text>
+                    </View>
+                )}
                 <PrimaryNavOpen navigation={navigation}></PrimaryNavOpen>
                 <SafeAreaView>
                     <FlatList
@@ -135,6 +148,7 @@ class Decks extends Component{
                                                 decks: data,
                                                 addNewDeck: false
                                             });
+                                            this.setState({navToDeck: title});
                                         });
                                     }
                                     decks();
@@ -218,6 +232,26 @@ const styles = StyleSheet.create({
         padding: 10,
         borderWidth: 1,
         borderColor: "black"
+    },
+    notification: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        position: "absolute",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        zIndex: 100,
+        backgroundColor: "white"
+    },
+    takeQuizTitle: {
+        marginBottom: 350
+    }, 
+    takeQuizBtn: {
+        position: "absolute",
+        top: 25,
+        right: 25
     }
   });
 
