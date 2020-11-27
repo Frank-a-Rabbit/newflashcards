@@ -1,6 +1,32 @@
 import AsyncStorage from "@react-native-community/async-storage"
 
 const DATA = {
+    _setNotification: async() => {
+        try{
+            var exp = new Date();
+            console.log("Notification Set");
+            AsyncStorage.setItem("NOTIFICATION", exp.getTime());
+        }catch(error){
+            console.log(error);
+        }
+    },
+    _getNotification: async() => {
+        try{
+            let notification = await AsyncStorage.getItem("NOTIFICATION");
+            notification = JSON.stringify(notification);
+            notification = notification.replace(/['"]+/g, '');
+            notification = parseInt(notification);
+            let num = new Date();
+            let compare = num.getTime();
+            if(notification  + ((86.4 * 1000) * 1000) < compare){
+                return true;
+            }else{
+                return false;
+            }
+        }catch(error){
+            console.log(error);
+        }
+    },
     _getDecks: async() => {
         try{
             const data = await AsyncStorage.getItem("DECKS");
@@ -14,6 +40,7 @@ const DATA = {
         }
     },
     _getDeck: async(deck) => {
+        console.log("From within: ", deck);
         try{
             let data = await AsyncStorage.getItem("DECKS");
             data = JSON.parse(data);

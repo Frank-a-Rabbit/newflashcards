@@ -1,6 +1,5 @@
 import React, {Component, useState, useEffect} from "react";
 import {Text, Button, StyleSheet, Animated, View, TextInput, Keyboard} from "react-native";
-import CardFlip from "react-native-card-flip";
 import DATA from "../utils/data"; 
 
 class DeckItem extends Component{
@@ -12,8 +11,13 @@ class DeckItem extends Component{
             addCard: false,
             takeQuiz: false,
             deckItems: this.props.props.route.params.questions.length,
-            quizItems: props.props.route.params,
-            deckTitle: props.props.route.params.deckName
+            quizItems: this.props.props.route.params.questions,
+            deckTitle: this.props.props.route.params.deckName,
+            currentQuestion: this.props.props.route.params.questions[0] ? this.props.props.route.params.questions[0].question : "No questions added yet",
+            currentAnswer: false,
+            endOfQuiz: false,
+            correctAnswer: 0,
+            incorrectAnswer: 0
         }
     }
 
@@ -27,30 +31,154 @@ class DeckItem extends Component{
             this.state.addCard = false,
             this.state.takeQuiz = false
         }
+        if(this.props.props.route.params.deckName !== this.state.deckTitle){
+            this.setState({
+                addCard: false,
+                takeQuiz: false,
+                deckItems: this.props.props.route.params.questions.length,
+                quizItems: this.props.props.route.params.questions,
+                deckTitle: this.props.props.route.params.deckName,
+                currentQuestion: this.props.props.route.params.questions[0].question ? this.props.props.route.params.questions[0].question : "No questions added yet",
+                currentAnswer: false,
+                endOfQuiz: false,
+                correctAnswer: 0,
+                incorrectAnswer: 0
+            });
+        }
     }
 
     render(){
         const props = this.props.props;
-        console.log(this.props.props.route.params.questions.length)
         const updateFunc = this.props.props.route.params.updater;
         const {opacity} = this.state;
         let question, answer;
-
         const addCard = () => {
             this.setState({addCard: true});
         }
 
-        const TakeQuiz = ({deck}) => {
-            const questions = deck;
-            let [correctAnswer, tallySelection] = useState(false);
-            let [currentQuestion, processScore] = useState(questions[0]);
-            console.log(questions)
+        const showAnswer = question => {
+            this.state.quizItems.forEach(item => {
+                if(item.question === question){
+                    this.setState({
+                        currentAnswer: item.answer,
+                        takeQuiz: true
+                    });
+                }
+            });
+        }
+
+        const nextQuestion = (current, all) => {
+            var next = all.findIndex(c => c.question === current) + 1;
+            if(all[next] === undefined){
+                this.setState({currentQuestion : all[0].question, takeQuiz: true});
+            }else{
+                this.setState({currentQuestion : all[next].question, takeQuiz: true});
+            }
+        }
+
+        const restartQuiz = questions => {
+            this.setState({
+                currentQuestion: questions[0].question, 
+                takeQuiz: true, 
+                endOfQuiz: false,
+                correctAnswer: 0,
+                incorrectAnswer: 0
+            });
+        }
+
+        const setAnswerCorrect = _ => {
+            let state = this.state;
+            this.setState((state) => ({
+                correctAnswer: state.correctAnswer + 1,
+                takeQuiz: true
+            }));
+        }
+
+        const setAnswerInCorrect = _ => {
+            let state = this.state;
+            this.setState((state) => ({
+                incorrectAnswer: state.incorrectAnswer + 1,
+                takeQuiz: true
+            }));
+        }
+
+        const TakeQuiz = ({...deck}) => {
+            let quizQuestions = deck.deck;
+            let totalNumber = deck.deck.length;
+            let showNextButton = !this.state.endOfQuiz && totalNumber > 1;
+            let quizComplete = this.state.correctAnswer + this.state.incorrectAnswer == this.state.deckItems;
+            if(quizComplete){
+                DATA._setNotification();
+            }
             return(
                 <View>
-                    <Text>{this.state.deckTitle}</Text>
-                    <Button 
-                    title="Press"
-                    onPress={() => tallySelection(correctAnswer = true)}></Button>
+                    <Text style={styles.quizTitle}>{this.props.props.route.params.deckName}</Text>
+                    {quizComplete && (
+                        <View>
+                            <Text style={styles.cardTitle}>You got {this.state.correctAnswer} correct</Text>
+                            <Text style={styles.cardTitle}>You got {this.state.incorrectAnswer} incorrect</Text>
+                        </View>
+                    )}
+                    {!quizComplete && (
+                        <View>
+                            <Text style={styles.cardTitle}>{this.state.currentQuestion}</Text>
+                            <Text style={styles.cardTitle}>Question {quizQuestions.findIndex(q => q.question === this.state.currentQuestion) + 1} of {totalNumber}</Text>
+                            <View
+                            style={styles.btn}><Button
+                            title="Correct"
+                            onPress={() => setAnswerCorrect()}></Button></View>
+                            <View
+                            style={styles.btn}><Button
+                            title="Incorrect"
+                            onPress={() => setAnswerInCorrect()}></Button></View>
+                            <View
+                            style={styles.btn}><Button
+                            title="Show Answer"
+                            onPress={() => showAnswer(this.state.currentQuestion)}></Button></View>
+                            {showNextButton && (
+                        <View
+                            style={styles.btn}><Button
+                            title="Next Question"
+                            onPress={() => nextQuestion(this.state.currentQuestion, quizQuestions)}></Button></View>
+                        )}
+                        </View>
+                    )}
+                    {quizComplete && (
+                        <View
+                        style={styles.btn}>
+                            <Button
+                                title="Restart Quiz"
+                                onPress={() => restartQuiz(quizQuestions)}>
+                            </Button>
+                        </View>
+                    )}
+                    {quizComplete && (
+                        <View
+                        style={styles.btn}>
+                            <Button
+                                title="Back to Deck"
+                                onPress={() => this.setState({
+                                    takeQuiz: false,
+                                    correctAnswer: 0,
+                                    incorrectAnswer: 0
+                                })}>
+                            </Button>
+                        </View>
+                    )}
+                    {this.state.currentAnswer && (
+                        <View
+                        style={styles.answerScreen}>
+                            <Text style={styles.quizTitle}>{this.state.currentAnswer}</Text>
+                            <Button
+                            title="Close"
+                            style={styles.closeAnswer}
+                            onPress={ _ => this.setState({
+                                currentAnswer: false,
+                                takeQuiz: true
+                            })}
+                            ></Button>
+                        </View>
+                    )}
                 </View>
             )
         }
@@ -64,8 +192,11 @@ class DeckItem extends Component{
                     this.props.props.route.params.questions.length += 1;
                     this.setState({
                         addCard: false,
+                        takeQuiz: false,
                         deckItems: response[props.route.params.deckName].questions.length,
-                        quizItems: response[props.route.params.deckName].questions
+                        quizItems: response[props.route.params.deckName].questions,
+                        currentQuestion: response[props.route.params.deckName].questions[0].question
+                        
                     });
                     updateFunc(response[props.route.params.deckName]);
                 });
@@ -76,21 +207,26 @@ class DeckItem extends Component{
             <View style={styles.container}>
                 <Animated.View style={[styles.innerCont, {opacity}]}>
                     <Text style={styles.title}>{props.route.params.deckName}</Text>
-                    <Text style={styles.subtitle}>Number of cardse: {this.props.props.route.params.questions.length}</Text>
+                    <Text style={styles.subtitle}>Number of cards: {this.props.props.route.params.questions.length}</Text>
                     <View style={styles.btnCont}>
                         <View style={styles.btnTop}>
                             <Button
                             title="Add Card"
                             onPress={() => addCard()}></Button>
                         </View>
-                        <View style={styles.btn}>
-                            <Button
-                            title="Take Quiz"
-                            onPress={() => {
-                                this.setState({takeQuiz: true});
-                                // takeQuiz.init(props.route.params.deckName);
-                            }}></Button>
-                        </View>
+                        {this.state.deckItems > 0 && (
+                            <View style={styles.btn}>
+                                <Button
+                                title="Take Quiz"
+                                onPress={() => {
+                                    this.setState({
+                                        takeQuiz: true,
+                                        currentQuestion: this.props.props.route.params.questions[0].question
+                                    });
+                                    DATA._setNotification();
+                                }}></Button>
+                            </View>
+                        )}
                     </View>
                 </Animated.View>
                 {this.state.addCard && (
@@ -187,6 +323,35 @@ const styles = StyleSheet.create({
         bottom: 0,
         zIndex: 20,
         backgroundColor: "red"
+    },
+    quizTitle: {
+        marginBottom: 100,
+        fontWeight: "bold",
+        textAlign: "center",
+        fontSize: 28
+    },
+    cardTitle: {
+        marginBottom: 20,
+        fontWeight: "bold",
+        textAlign: "center",
+        fontSize: 20
+    },
+    answerScreen: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        position: "absolute",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        zIndex: 21,
+        backgroundColor: "red"
+    },
+    closeAnswer: {
+        position: "absolute",
+        top: 15,
+        right: 15
     }
 })
 
