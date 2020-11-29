@@ -18,7 +18,7 @@ const DATA = {
             notification = parseInt(notification);
             let num = new Date();
             let compare = num.getTime();
-            if(notification  + ((86.4 * 1000) * 1000) < compare){
+            if(notification  + ((86.4 * 1000) * 1000) > compare){
                 return true;
             }else{
                 return false;
@@ -142,6 +142,7 @@ const DATA = {
                 "DECKS",
                 JSON.stringify(initData)
             ).then(() => {
+                console.log("seeding")
                 DATA._getDecks();
             });
         } catch (error) {
