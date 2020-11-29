@@ -29,22 +29,23 @@ class Decks extends Component{
         AsyncStorage.getItem("DECKS", (err, result) => {
             if(err){
                 console.log(err);
-            }else{
-                if(result === null){
-                    DATA._seed().then(() => {
-                        this.setState({
-                            decks: decks,
-                            hasDecks: true
-                        });
-                    });
-                }
-                decks = JSON.parse(result);
             }
-        }).then(() => {
-            this.setState({
-                decks: decks,
-                hasDecks: true
-            });
+            if(result === null){
+                DATA._seed().then(async() => {
+                    let decks = await AsyncStorage.getItem("DECKS");
+                    decks = JSON.parse(decks);
+                    this.setState({
+                        decks: decks,
+                        hasDecks: true
+                    });
+                });
+            }else{
+                let decks = JSON.parse(result);
+                this.setState({
+                    decks: decks,
+                    hasDecks: true
+                });
+            }
         });
     }
 
@@ -83,6 +84,7 @@ class Decks extends Component{
                 ></Deck>
             )
         }
+
         {this.state.hasDecks && (
             Object.keys(this.state.decks).map((key, idx) => {
                 let currentItem = {}
