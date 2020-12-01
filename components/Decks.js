@@ -1,6 +1,6 @@
 import React, {Component} from "react"
 import {TextInput, StyleSheet, Text, View, SafeAreaView, FlatList, TouchableOpacity, Button} from "react-native"
-import AsyncStorage from "@react-native-community/async-storage"
+import AsyncStorage from "@react-native-async-storage/async-storage"
 import {PrimaryNavOpen} from "../App"
 import DATA from "../utils/data"
 
@@ -18,7 +18,9 @@ class Decks extends Component{
         }
     }
 
+    _isMounted = false;
     componentDidMount(){
+        this._isMounted = true;
         (async() => {
             let resp = await DATA._getNotification();
             if(resp === false){
@@ -47,6 +49,10 @@ class Decks extends Component{
                 });
             }
         });
+    }
+
+    componentWillUnmount(){
+        this._isMounted = false;
     }
 
     updateState = (resp) => {
@@ -123,7 +129,8 @@ class Decks extends Component{
                 <SafeAreaView>
                     <FlatList
                         data={this.state.deckItems}
-                        renderItem={renderItem}>
+                        renderItem={renderItem}
+                        keyExtractor={(renderItem, index) => index.toString()}>
                     </FlatList>
                 </SafeAreaView>
                 <Button
@@ -138,7 +145,7 @@ class Decks extends Component{
                         style={styles.input}
                         placeholder="Deck Title:"
                         onChangeText={value => title = value}
-                        onBlur={Keyboard.dismiss}></TextInput>
+                        ></TextInput>
                         <Button
                             title="Add New Deck"
                             onPress={async () => {
