@@ -1,20 +1,14 @@
 import "react-native-gesture-handler"
-import React, {Component, useState, useEffect, useCallback} from "react"
-import {Platform, StyleSheet, Text, View, TouchableOpacity} from "react-native"
+import React from "react"
+import {StyleSheet, Text, View, TouchableOpacity} from "react-native"
 import {NavigationContainer} from "@react-navigation/native"
-import {createDrawerNavigator, DrawerContentScrollView, DrawerItemList, DrawerItem} from "@react-navigation/drawer"
-import {createStackNavigator} from "@react-navigation/stack"
+import {createDrawerNavigator} from "@react-navigation/drawer"
 import Decks from "./components/Decks"
 import ViewDeck from "./components/ViewDeck"
-import AsyncStorage from "@react-native-community/async-storage"
-import { useFonts, DoHyeon_400Regular } from "@expo-google-fonts/do-hyeon"
 
 const Drawer = createDrawerNavigator();
 
 const App = () => {
-    let [fontsLoaded] = useFonts({
-      DoHyeon_400Regular,
-    });
     
     return(
       <View style={styles.parent}>
@@ -78,11 +72,12 @@ const styles = StyleSheet.create({
     backgroundColor: "red",
     color: "white",
     textAlign: "center",
+    marginTop: 100,
     marginBottom: "auto",
-    width: "100%"
+    width: "100%",
+    zIndex: 100
   },
   navFont: {
-    fontFamily: "DoHyeon_400Regular",
     fontSize: 22,
     color: "azure"
   },

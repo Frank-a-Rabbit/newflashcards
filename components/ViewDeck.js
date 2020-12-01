@@ -1,5 +1,5 @@
 import React, {Component} from "react"
-import {StyleSheet, View, Text} from "react-native"
+import {StyleSheet, View} from "react-native"
 import DeckItem from "./DeckItem"
 import {PrimaryNavOpen} from "../App"
 
@@ -7,10 +7,6 @@ class ViewDeck extends Component{
     constructor(props){
         super(props);
     }
-
-    // static navigationOptions = {
-    //     drawerLabel: () => null
-    // }
     
     render(){
         const props = this.props;

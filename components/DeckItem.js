@@ -23,7 +23,7 @@ class DeckItem extends Component{
 
     componentDidMount(){
         const {opacity} = this.state;
-        Animated.timing(opacity, {toValue: 1, duration: 2500}).start();
+        Animated.timing(opacity, {toValue: 1, duration: 2500, useNativeDriver: true}).start();
     }
 
     componentDidUpdate(){
@@ -268,7 +268,7 @@ const styles = StyleSheet.create({
         flex: 1,
         borderColor: "black",
         borderWidth: 1,
-        marginTop: 50
+        marginTop: 150
     },  
     title: {
         textAlign: "center",
