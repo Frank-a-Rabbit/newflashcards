@@ -1,4 +1,4 @@
-import React, {Component, useState, useEffect} from "react";
+import React, {Component} from "react";
 import {Text, Button, StyleSheet, Animated, View, TextInput, Keyboard} from "react-native";
 import DATA from "../utils/data"; 
 
@@ -31,25 +31,27 @@ class DeckItem extends Component{
             this.state.addCard = false,
             this.state.takeQuiz = false
         }
-        if(this.props.props.route.params.deckName !== this.state.deckTitle){
-            this.setState({
-                addCard: false,
-                takeQuiz: false,
-                deckItems: this.props.props.route.params.questions.length,
-                quizItems: this.props.props.route.params.questions,
-                deckTitle: this.props.props.route.params.deckName,
-                currentQuestion: this.props.props.route.params.questions[0].question ? this.props.props.route.params.questions[0].question : "No questions added yet",
-                currentAnswer: false,
-                endOfQuiz: false,
-                correctAnswer: 0,
-                incorrectAnswer: 0
-            });
-        }
+        // if(this.props.props.route.params.deckName !== this.state.deckTitle){
+        //     this.setState({
+        //         addCard: false,
+        //         takeQuiz: false,
+        //         deckItems: this.props.props.route.params.questions.length,
+        //         quizItems: this.props.props.route.params.questions,
+        //         deckTitle: this.props.props.route.params.deckName,
+        //         currentQuestion: this.props.props.route.params.questions[0].question ? this.props.props.route.params.questions[0].question : "No questions added yet",
+        //         currentAnswer: false,
+        //         endOfQuiz: false,
+        //         correctAnswer: 0,
+        //         incorrectAnswer: 0
+        //     });
+        // }
     }
 
     render(){
         const props = this.props.props;
+        console.log(props)
         const updateFunc = this.props.props.route.params.updater;
+        console.log("I am: ", updateFunc)
         const {opacity} = this.state;
         let question, answer;
         const addCard = () => {
@@ -187,6 +189,7 @@ class DeckItem extends Component{
             if(question === undefined || answer === undefined){
                 return;
             }
+
             DATA._addCard(props.route.params.deckName, question, answer).then( _ => {
                 DATA._getDecks("DECKS").then(response => {
                     this.props.props.route.params.questions.length += 1;

@@ -59,9 +59,12 @@ class Decks extends Component{
         let currentDecks = this.state.decks;
         currentDecks[resp.title].questions = resp.questions;
         this.setState({decks : currentDecks});
+        console.log("forcing")
+        this.forceUpdate();
     }
 
     render(){
+
         const navigation = this.props.navigation;
         let allItems = [];
         let title;
@@ -72,11 +75,11 @@ class Decks extends Component{
         const Deck = ({deck}) => {
             if(this.state.navToDeck){
                 if(deck.title === this.state.navToDeck){
-                    deck.nav.navigate("ViewDeck", {deckName: deck.title, questions: deck.questions, updater: deck.updateFunction})
+                    deck.nav.navigate("ViewDeck", {deckName: deck.title, questions: deck.questions, updater: this.updateState})
                 }
             }
             return(
-                <TouchableOpacity style={styles.deckCont} onPress={() => deck.nav.navigate("ViewDeck", {deckName: deck.title, questions: deck.questions, updater: deck.updateFunction})}>
+                <TouchableOpacity style={styles.deckCont} onPress={() => deck.nav.navigate("ViewDeck", {deckName: deck.title, questions: deck.questions, updater: this.updateState})}>
                     <Text style={[styles.deck, styles.deckTitle]}>{deck.title}</Text>
                     <Text style={styles.deck}>Number of Cards: {this.state.decks[deck.title].questions.length}</Text>
                 </TouchableOpacity>
@@ -101,7 +104,7 @@ class Decks extends Component{
                     }else if(typeof item === "object"){
                         currentItem["count"] = item.length
                         currentItem["questions"] = item
-                        currentItem["updateFunction"] = this.updateState
+                        // currentItem["updateFunction"] = this.updateState
                     }
                 });
                 allItems.push(currentItem);
